@@ -1,0 +1,9 @@
+{
+  "name": "credit_card-1lvl",
+  "version": "1.0.0",
+  "scripts": {},
+  "author": "Zhebit Olga",
+  "dependencies": {
+    "redom": "^3.29.1"
+  }
+}
