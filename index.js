@@ -1,4 +1,11 @@
 import {el, setChildren} from './node_modules/redom/dist/redom.es.js';
+import {showWarning} from './modules/helpers.js';
+import {
+    validateCardHolder,
+    validateCardNumber,
+    validateCardCVV,
+    validateCardExpire,
+} from './modules/validate.js';
 
 const creditCard = el('div', {className: 'credit-card'}, [
     el('span', {className: 'card__number'}, 'xxxx xxxx xxxx xxxx'),
@@ -15,6 +22,29 @@ const createForm = () => {
         id: 'form',
         onsubmit(e) {
             e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const itemData = Object.fromEntries(formData);
+
+            for (const val of Object.values(itemData)) {
+                if (!val.replace(/\s/g, '').length) return;
+            }
+
+            const isNameValid = validateCardHolder(form.cardName.value);
+            const isNumberValid = validateCardNumber(form.number.value);
+            const isCVVValid = validateCardCVV(form.cvv.value);
+            const isExpireDateValid = validateCardExpire(form.expire.value);
+
+            if (!isNameValid) showWarning(form.cardName);
+            if (!isNumberValid) showWarning(form.number);
+            if (!isCVVValid) showWarning(form.cvv);
+            if (!isExpireDateValid) showWarning(form.expire);
+
+            if (isNameValid && isNumberValid &&
+                    isCVVValid && isExpireDateValid) {
+                alert('Данные корректны!');
+                form.reset();
+            }
         }});
 
     setChildren(form, [
@@ -22,12 +52,11 @@ const createForm = () => {
             el('label', {htmlFor: '', className: 'form__label form__holder-label'}, 'Card Holder'),
             el('input', {
                 className: 'input input__holder',
-                maxLength: '20',
                 type: 'text',
+                name: 'cardName',
                 oninput({target}) {
                     const name = document.querySelector('.card__name');
-                    target.value = target.value
-                        .replace(/[^a-z\s'-]/gi, '').toUpperCase();
+                    target.value = target.value.toUpperCase();
 
                     name.textContent = target.value;
                 },
@@ -38,14 +67,12 @@ const createForm = () => {
             el('input', {
                 className: 'input input__number',
                 id: 'cardnumber',
-                maxLength: '19',
                 type: 'text',
-                inputMode: 'numeric',
+                name: 'number',
                 oninput({target}) {
                     const number = document.querySelector('.card__number');
                     target.value = target.value
-                        .replace(/[\D\s]/g, '')
-                        .replace(/(\d{4})(?=\d)/g, '$1 ');
+                        .replace(/(\S{4})(?=\S)/g, '$1 ');
                     number.textContent = target.value;
                 },
             }),
@@ -54,13 +81,11 @@ const createForm = () => {
             el('label', {htmlFor: '', className: 'form__label form__date-label'}, 'Card Expiry'),
             el('input', {
                 className: 'input input__date',
-                maxLength: '5',
                 type: 'text',
-                inputMode: 'numeric',
+                name: 'expire',
                 oninput({target}) {
                     const expire = document.querySelector('.card__date');
                     target.value = target.value
-                        .replace(/[\D\s]/g, '')
                         .replace(/(\d{2})(?=\d)/g, '$1/');
                     expire.textContent = target.value;
                 },
@@ -70,15 +95,11 @@ const createForm = () => {
             el('label', {htmlFor: '', className: 'form__label form__cvv-label'}, 'CVV'),
             el('input', {
                 className: 'input input__cvv',
-                maxLength: '3',
                 type: 'text',
-                inputMode: 'numeric',
-                oninput({target}) {
-                    target.value = target.value.replace(/\D+/g, '');
-                },
+                name: 'cvv',
             }),
         ]),
-        el('button', {className: 'form__button'}, 'CHECK OUT'),
+        el('button', {className: 'form__button', type: 'submit'}, 'CHECK OUT'),
     ]);
 
     return form;
@@ -94,3 +115,4 @@ setChildren(document.body,
         ),
     ),
 );
+
